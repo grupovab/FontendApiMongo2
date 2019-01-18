@@ -1,39 +1,59 @@
-import React from 'react'
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
+import {bindActionCreators} from 'redux'
+
 import Grid from '../template/grid'
 import IconButton from '../template/iconButton'
+import {mudarDescricao,buscarTodos,adicionarTodo,limpar} from './todoActions'
 
-export default props => {
-
-    const teclaPrecionada = (e) => {       
-        if (e.key === 'Enter') {
-            props.propriedadeAdd()
-        } else if (e.key === 'Escape') {
-            props.propriedadeLimpar()
-        } else if (e.shiftKey) {      
-            console.log(e)   
-            props.propriedadeBuscar()
-        }
-
+class TodoForm extends Component {
+    constructor(props){
+        super(props)
+        this.teclaPrecionada = this.teclaPrecionada.bind(this)
     }
 
-    return (
-        <div role='form' className='todoForm'>
-            <Grid cols='12 9 10'>
-                <input id='description' className='form-control'
-                    placeholder='Adicione uma tarefa' 
-                    value={props.propriedadeTexto} 
-                    onChange={props.propriedadeDigitacao}
-                    onKeyUp={teclaPrecionada}>
-                </input>
-            </Grid>
-            <Grid cols='12 3 2'>
-            <IconButton style='primary' icon='plus' onClick={props.propriedadeAdd}>
-            </IconButton>
-            <IconButton style='info' icon='search' onClick={props.propriedadeBuscar}>
-            </IconButton>
-            <IconButton style='default' icon='close' onClick={props.propriedadeLimpar}>
-            </IconButton>
-            </Grid>
-        </div>
-    )
-} 
+    componentWillMount(){
+        this.props.buscarTodos()
+    }
+
+    teclaPrecionada(e) {      
+        //essa linha extrai os metodos das porps
+        const {propriedadeTexto,buscarTodos,adicionarTodo } = this.props
+        
+        if (e.key === 'Enter') {
+            e.shiftKey ? buscarTodos(propriedadeTexto) : adicionarTodo(propriedadeTexto)
+        } else if (e.key === 'escape') {
+            this.props.limpar
+        }  
+        console.log(e.key)  
+    }
+
+    render() {
+        //essa linha extrai os metodos das porps
+        const {propriedadeTexto,buscarTodos,adicionarTodo } = this.props
+        return (
+            <div role='form' className='todoForm'>
+                <Grid cols='12 9 10'>
+                    <input id='description' className='form-control'
+                        placeholder='Adicione uma tarefa' 
+                        value={this.props.propriedadeTexto} 
+                        onChange={this.props.mudarDescricao}
+                        onKeyUp={this.props.teclaPrecionada}>
+                    </input>
+                </Grid>
+                <Grid cols='12 3 2'>
+                <IconButton style='primary' icon='plus' onClick={() => adicionarTodo(propriedadeTexto)}>
+                </IconButton>
+                <IconButton style='info' icon='search' onClick={() => buscarTodos(propriedadeTexto)}>
+                </IconButton>
+                <IconButton style='default' icon='close' onClick={this.props.limpar}>
+                </IconButton>
+                </Grid>
+            </div>
+        )
+    }
+}
+
+const mapEstados = state => ({propriedadeTexto : state.todo.description})
+const mapAcoes = diparador => bindActionCreators({mudarDescricao,buscarTodos,adicionarTodo,limpar},diparador)
+export default connect(mapEstados, mapAcoes)(TodoForm)
